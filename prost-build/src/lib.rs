@@ -259,7 +259,7 @@ pub struct Config {
     include_file: Option<PathBuf>,
     prost_path: Option<String>,
     fmt: bool,
-    include_imports: bool,
+    exclude_imports: bool,
 }
 
 impl Config {
@@ -805,8 +805,8 @@ impl Config {
     }
 
     /// Configures the code generator to generate code for imported transitive dependencies.
-    pub fn include_imports(&mut self) -> &mut Self {
-        self.include_imports = true;
+    pub fn exclude_imports(&mut self) -> &mut Self {
+        self.exclude_imports = true;
         self
     }
 
@@ -1043,7 +1043,7 @@ impl Config {
             let protoc = protoc_from_env();
 
             let mut cmd = Command::new(protoc.clone());
-            if self.include_imports {
+            if !self.exclude_imports {
                 cmd.arg("--include_imports");
             }
             cmd.arg("--include_source_info")
@@ -1075,7 +1075,8 @@ impl Config {
                 cmd.arg(proto.as_ref());
             }
 
-            debug!("Running: {:?}", cmd);
+            println!("cargo:warning=kriswuollett");
+            println!("cargo:warning={:?}", cmd);
 
             let output = cmd.output().map_err(|error| {
                 Error::new(
@@ -1258,7 +1259,7 @@ impl default::Default for Config {
             include_file: None,
             prost_path: None,
             fmt: true,
-            include_imports: false,
+            exclude_imports: false,
         }
     }
 }
@@ -1280,7 +1281,7 @@ impl fmt::Debug for Config {
             .field("protoc_args", &self.protoc_args)
             .field("disable_comments", &self.disable_comments)
             .field("prost_path", &self.prost_path)
-            .field("include_imports", &self.include_imports)
+            .field("exclude_imports", &self.exclude_imports)
             .finish()
     }
 }
