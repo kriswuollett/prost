@@ -259,6 +259,7 @@ pub struct Config {
     include_file: Option<PathBuf>,
     prost_path: Option<String>,
     fmt: bool,
+    include_imports: bool,
 }
 
 impl Config {
@@ -803,6 +804,12 @@ impl Config {
         self
     }
 
+    /// Configures the code generator to generate code for imported transitive dependencies.
+    pub fn include_imports(&mut self) -> &mut Self {
+        self.include_imports = true;
+        self
+    }
+
     /// Configures the output directory where generated Rust files will be written.
     ///
     /// If unset, defaults to the `OUT_DIR` environment variable. `OUT_DIR` is set by Cargo when
@@ -1036,8 +1043,10 @@ impl Config {
             let protoc = protoc_from_env();
 
             let mut cmd = Command::new(protoc.clone());
-            cmd.arg("--include_imports")
-                .arg("--include_source_info")
+            if self.include_imports {
+                cmd.arg("--include_imports");
+            }
+            cmd.arg("--include_source_info")
                 .arg("-o")
                 .arg(&file_descriptor_set_path);
 
@@ -1249,6 +1258,7 @@ impl default::Default for Config {
             include_file: None,
             prost_path: None,
             fmt: true,
+            include_imports: false,
         }
     }
 }
@@ -1270,6 +1280,7 @@ impl fmt::Debug for Config {
             .field("protoc_args", &self.protoc_args)
             .field("disable_comments", &self.disable_comments)
             .field("prost_path", &self.prost_path)
+            .field("include_imports", &self.include_imports)
             .finish()
     }
 }
